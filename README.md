@@ -1,5 +1,4 @@
 # angular-disqus
---- 
  > ```angular.js``` and ```disqus``` integration made easy
  
 A set of directive(s) and services to simplify the life of developers.
