@@ -6,10 +6,6 @@
   "directories": {
     "test": "test"
   },
-  "scripts": {
-    "test": "grunt test",
-    "build": "grunt build"
-  },
   "repository": "",
   "author": "Mikk Kirstein",
   "license": "BSD",
