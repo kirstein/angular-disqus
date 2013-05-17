@@ -1,0 +1,16 @@
+{
+  "name": "angular-disqus",
+  "version": "0.0.1",
+  "main": "angular-disqus.js",
+  "ignore": [
+    "node_modules",
+    "components"
+  ],
+  "dependencies": {
+    "angular": ">1.0.0"
+  },
+  "devDependencies": {
+    "angular-mocks": "~1.0.6",
+    "jquery": "~2.0.0"
+  }
+}
