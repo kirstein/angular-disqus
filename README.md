@@ -1,4 +1,5 @@
-# angular-disqus
+# angular-disqus [![Build Status](https://travis-ci.org/kirstein/angular-disqus.png)](https://travis-ci.org/kirstein/angular-disqus.png)
+
  > ```angular.js``` and ```disqus``` integration made easy
  
 A set of directive(s) and services to simplify the life of developers.
