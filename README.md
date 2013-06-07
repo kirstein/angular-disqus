@@ -40,6 +40,7 @@ Keep in mind that ID must be valid! (_Yes_, it can be an expression).
 
 ```
   npm install
+  bower install
   grunt test
   grunt build
 ```
