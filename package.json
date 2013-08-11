@@ -2,18 +2,22 @@
   "name": "angular-disqus",
   "version": "0.0.1",
   "description": "Disqus directive for angular.js",
-  "main": " ",
+  "homepage": "http://github.com/kirstein/angular-disqus",
   "directories": {
     "test": "test"
   },
-  "repository": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kirstein/angular-disqus.git"
+  },
   "author": "Mikk Kirstein",
-  "license": "BSD",
+  "license": "MIT",
   "devDependencies": {
     "karma": "~0.8.5",
     "grunt": "~0.4.1",
     "grunt-karma": "~0.4.4",
     "grunt-contrib-uglify": "~0.2.0",
-    "grunt-contrib-copy": "~0.4.1"
+    "grunt-contrib-copy": "~0.4.1",
+    "grunt-banner": "~0.1.4"
   }
 }

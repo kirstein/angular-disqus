@@ -1,3 +1,9 @@
+/* 
+ * angular-disqus 0.0.1
+ * http://github.com/kirstein/angular-disqus
+ * 
+ * Licensed under the MIT license
+ */
 (function (angular) {
   "use strict";
 
