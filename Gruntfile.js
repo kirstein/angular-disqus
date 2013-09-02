@@ -45,4 +45,5 @@ module.exports = function( grunt ) {
 
   grunt.registerTask('test', [ 'karma' ]);
   grunt.registerTask('build', [ 'test', 'copy', 'uglify', 'usebanner' ]);
+  grunt.registerTask('default', [ 'build' ]);
 };

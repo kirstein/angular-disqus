@@ -1,32 +1,105 @@
 describe('Angular-disqus', function() {
+  var $disqusProvider;
 
   beforeEach(module('ngDisqus'));
+
+  // Get the provider for testing
+  beforeEach(function() {
+    var mod = angular.module('providerTest', []).config(function(_$disqusProvider_) {
+      $disqusProvider = _$disqusProvider_;
+    });
+
+    module(mod.name);
+    inject(function() {});
+  });
+
+  describe ('$disqusProvider', function() {
+    it ('should contain the shortname function', function() {
+      expect($disqusProvider.setShortname).toEqual(jasmine.any(Function));
+    });
+
+    it ('should set the shortname', inject(function($disqus) {
+      $disqusProvider.setShortname('test-name');
+      expect($disqus.getShortname()).toEqual('test-name');
+    }));
+  });
 
   describe('$disqus', function() {
 
     describe('#commit', function() {
-      it('should throw when no id is defined', inject(function($disqus, $window) {
-        $window.disqus_shortname = 'karl';
 
-        expect(function () {
-          $disqus.commit(undefined);
-        }).toThrow('No disqus thread id defined');
-      }));
+      describe ('exception throwing', function() {
+        it('should throw when no disqus shortname defined', inject(function($disqus, $window) {
+          expect(function () {
+            $disqus.commit();
+          }).toThrow('No disqus shortname defined');
+        }));
 
-      it('should write the script tag to head if not initialized', inject(function($disqus, $window) {
-        $window.disqus_shortname = 'test';
+        it('should throw when no disqus shortname defined (on window)', inject(function($disqus, $window) {
+          $window.disqus_shortname = undefined;
+          expect(function () {
+            $disqus.commit();
+          }).toThrow('No disqus shortname defined');
+        }));
 
+        it('should not throw when disqus_shortname is defined on window', inject(function($disqus, $window) {
+          $window.disqus_shortname = 123;
+          expect(function () {
+            $disqus.commit();
+          }).not.toThrow('No disqus shortname defined');
+        }));
+
+        it('should throw when no id is defined', inject(function($disqus, $window) {
+          $disqusProvider.setShortname('defined');
+          expect(function () {
+            $disqus.commit(undefined);
+          }).toThrow('No disqus thread id defined');
+        }));
+      });
+
+      it('should write the script tag to head if not initialized (using provider)', inject(function($disqus) {
+
+        $disqusProvider.setShortname('shortname');
         $disqus.commit('test');
-        var tags = $('script[type="text/javascript"][src="//test.disqus.com/embed.js"]');
+        var tags = $('script[type="text/javascript"][src="//shortname.disqus.com/embed.js"]');
 
         expect(tags.length).toBe(1);
+      }));
+
+      it('should write the script tag to head if not initialized (using $window.disqus_shortname)', inject(function($disqus) {
+
+        $disqusProvider.setShortname('shortname');
+        $disqus.commit('test');
+        var tags = $('script[type="text/javascript"][src="//shortname.disqus.com/embed.js"]');
+
+        expect(tags.length).toBe(1);
+      }));
+
+      it('should write ONLY ONE script tag', inject(function($disqus) {
+
+        $disqusProvider.setShortname('shortname');
+        $disqus.commit('test');
+        $disqus.commit('test');
+        $disqus.commit('test');
+        $disqus.commit('test');
+        var tags = $('script[type="text/javascript"][src="//shortname.disqus.com/embed.js"]');
+
+        expect(tags.length).toBe(1);
+      }));
+
+      it('should write default values to window', inject(function($disqus, $window, $location) {
+        $disqusProvider.setShortname('shortname');
+        $disqus.commit('test');
+
+        expect($window.disqus_shortname).toEqual('shortname');
+        expect($window.disqus_identifier).toEqual('test');
+        expect($window.disqus_url).toEqual($location.absUrl());
       }));
 
       it('should reset the thread if initialized', inject(function($disqus, $window) {
         var spy = jasmine.createSpy('disqus reset spy');
 
-        $window.disqus_shortname = 'kala';
-
+        $disqusProvider.setShortname('shortname');
         // Overwrite the reset method
         $window.DISQUS = {
           reset : spy
@@ -42,16 +115,9 @@ describe('Angular-disqus', function() {
       }));
     });
 
-    describe('#shortname', function() {
-      it('should set the shortname', inject(function($disqus, $window) {
-        $disqus.shortname('paul');
-        expect($window.disqus_shortname).toBe('paul');
-      }));
-
-      it('should return the shortname', inject(function($disqus, $window) {
-        $window.disqus_shortname = 'paula';
-        $disqus.shortname();
-        expect($window.disqus_shortname).toBe('paula');
+    describe('#getShortname', function() {
+      it('should contain #getShortname method', inject(function($disqus, $window) {
+        expect($disqus.getShortname).toEqual(jasmine.any(Function));
       }));
     });
   });

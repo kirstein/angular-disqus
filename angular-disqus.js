@@ -1,35 +1,97 @@
 /* 
- * angular-disqus 0.0.1
+ * angular-disqus 1.0.0
  * http://github.com/kirstein/angular-disqus
  * 
  * Licensed under the MIT license
  */
-(function (angular) {
+(function (angular, window) {
   "use strict";
 
-  var disqusModule = angular.module('ngDisqus', []);
+  var disqusModule = angular.module('ngDisqus', [ ]);
 
-  disqusModule.service('$disqus', [ '$location', '$window', function($location, $window) {
+  /**
+   * $disqus provider.
+   */
+  disqusModule.provider('$disqus', function() {
+
+    var shortname;
 
     /**
-     * Adds disqus script tag to header.
-     * Initializes default values for url and disqus thread id.
-     *
-     * @param {String} id disqus thread id
+     * @return {Element} dom element for script adding
      */
-    function buildCommit(id) {
-      // Set the default values
-      $window.disqus_identifier = id;
-      $window.disqus_url        = $location.absUrl();
+    function getScriptContainer() {
+      return (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]);
+    }
 
-      var disqus = document.createElement('script');
+    /**
+     * @return {String} disqus shortname
+     */
+    function getShortname() {
+      return shortname || window.disqus_shortname;
+    }
+
+    /**
+     * @param {String} shortname disqus shortname
+     * @return {String} disqus embed src with embedded shortname
+     */
+    function getScriptSrc(shortname) {
+      return '//' + shortname + '.disqus.com/embed.js';
+    }
+
+    /**
+     * Builds the script tag
+     * @param {String} shortname disqus shortname
+     * @return {Element} script element
+     */
+    function buildScriptTag(shortname) {
+      var script = document.createElement('script');
 
       // Configure the script tag
-      disqus.type  = 'text/javascript';
-      disqus.async = true;
-      disqus.src   = '//' + $window.disqus_shortname + '.disqus.com/embed.js';
+      script.type  = 'text/javascript';
+      script.async = true;
+      script.src   = getScriptSrc(shortname);
 
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(disqus);
+      return script;
+    }
+
+    /**
+     * Searches the given element for defined script tag
+     * if its already there then return true. Otherwise return false
+     *
+     * @param {Element} element element to search within
+     * @param {String} shortname shortname to search
+     * @return {Boolean} true if its there, false if its not
+     */
+    function hasScriptTagInPlace(container, shortname) {
+      var scripts   = container.getElementsByTagName('script'),
+          scriptSrc = getScriptSrc(shortname),
+          script, i;
+
+      for (i = 0; i < scripts.length; i += 1) {
+        script = scripts[i];
+
+        // Check if the name contains the given values
+        // We need to check with indexOf because browsers replace // with their protocol
+        if (script.src.indexOf(scriptSrc)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    /**
+     * Writes disqus globals to window object.
+     * Needed for the first load. Otherwise the disqus wouldn't know what thread comments to load.
+     *
+     * @param {String} id disqus identifier
+     * @param {String} url disqus url
+     * @param {String} shortname disqus shortname
+     */
+    function setGlobals(id, url, shortname) {
+      window.disqus_identifier = id;
+      window.disqus_url        = url;
+      window.disqus_shortname  = shortname;
     }
 
     /**
@@ -37,7 +99,7 @@
      * @param  {String} id Thread id
      */
     function resetCommit(id) {
-      $window.DISQUS.reset({
+      window.DISQUS.reset({
         reload: true,
         config : function() {
           this.page.identifier = id;
@@ -47,34 +109,66 @@
     }
 
     /**
-     * Resets the comment for thread.
-     * If disqus was not defined then it will add disqus to script tags.
-     * If disqus was initialized earlier then it will just use disqus api to reset it
+     * Adds disqus script tag to header.
+     * Initializes default values for url and disqus thread id.
      *
-     * @param  {String} id required thread id
+     * @param {Object} $location location
+     * @param {String} id disqus thread id
      */
-    this.commit = function(id) {
-      if (!angular.isDefined($window.disqus_shortname)) {
-        throw new Error('No disqus shortname defined');
-      } else if (!angular.isDefined(id)) {
-        throw new Error('No disqus thread id defined');
-      } else if (angular.isDefined($window.DISQUS)) {
-        resetCommit(id);
-      } else {
-        buildCommit(id);
+    function buildCommit($location, id) {
+      var shortname = getShortname(),
+          container = getScriptContainer();
+
+      // If it already has a script tag in place then lets not do anything
+      // This might happen if the user changes the page faster than then disqus can load
+      if (hasScriptTagInPlace(container, shortname)) {
+        return;
       }
-    };
+
+      // Writes disqus global
+      setGlobals(id, $location.absUrl(), shortname);
+
+      // Build the script tag and append it to container
+      container.appendChild(buildScriptTag(shortname));
+    }
+
 
     /**
-     * Setter and getter for the shortname property.
-     *
-     * @param  {[String]} name Setter or getter for shortname. If left undefined will return the value.
-     * @return {String}      disqus shortname
+     * @param {String} sname shortname
      */
-    this.shortname = function(name) {
-      return $window.disqus_shortname = name || $window.disqus_shortname;
+    this.setShortname = function(sname) {
+      shortname = sname;
     };
-  }]);
+
+    // Provider constructor
+    this.$get = [ '$location', function($location) {
+
+      /**
+       * Resets the comment for thread.
+       * If disqus was not defined then it will add disqus to script tags.
+       * If disqus was initialized earlier then it will just use disqus api to reset it
+       *
+       * @param  {String} id required thread id
+       */
+      function commit(id) {
+        if (!angular.isDefined(getShortname())) {
+          throw new Error('No disqus shortname defined');
+        } else if (!angular.isDefined(id)) {
+          throw new Error('No disqus thread id defined');
+        } else if (angular.isDefined(window.DISQUS)) {
+          resetCommit(id);
+        } else {
+          buildCommit($location, id);
+        }
+      }
+
+      // Expose public api
+      return {
+        commit       : commit,
+        getShortname : getShortname
+      };
+    }];
+ });
 
   disqusModule.directive('disqus', [ '$disqus', function($disqus) {
 
@@ -92,4 +186,4 @@
     };
   }]);
 
-})(angular);
+})(angular, this);
