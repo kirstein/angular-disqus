@@ -1,5 +1,5 @@
 /* 
- * angular-disqus 1.0.0
+ * angular-disqus 1.0.1
  * http://github.com/kirstein/angular-disqus
  * 
  * Licensed under the MIT license
@@ -72,7 +72,7 @@
 
         // Check if the name contains the given values
         // We need to check with indexOf because browsers replace // with their protocol
-        if (script.src.indexOf(scriptSrc)) {
+        if (~script.src.indexOf(scriptSrc)) {
           return true;
         }
       }
@@ -173,11 +173,14 @@
   disqusModule.directive('disqus', [ '$disqus', function($disqus) {
 
     return {
-      restrict : 'EA',
+      restrict : 'AC',
       replace  : true,
+      scope    : {
+        id : '=disqus',
+      },
       template : '<div id="disqus_thread"></div>',
       link: function link(scope, element, attr) {
-        scope.$watch(attr.disqus, function(id) {
+        scope.$watch('id', function(id) {
           if (angular.isDefined(id)) {
             $disqus.commit(id);
           }

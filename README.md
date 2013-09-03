@@ -23,9 +23,13 @@ Add comments to threads by using the ```disqus``` directive
     <!-- directive can be used as an attribute -->
     <div disqus="id"></div>
 
-    <!-- directive can be used as a HTML tag -->
-    <disqus="id"></disqus>
+    <!-- directive can be used as a class attribute -->
+    <div class="disqus : id"></div>
 ```
+
+### Disqus identifiers   
+---
+Disqus identifiers must be passed to the directive as as expressions. If the plan is to pass a constant then one must make sure that the constant is wrapped in `'` apostrophes (_disqus="'id'""_)
 
 ### API
 ---
@@ -33,8 +37,6 @@ Add comments to threads by using the ```disqus``` directive
 1. ```$disqus#getShortname``` getter for the current shortname  
 2. ```$disqus#comment``` will reset comments (or generate comments if needed)
 3. ```$disqusProvider#setShortname``` setter for shortname
-
-Keep in mind that ID must be valid! (_Yes_, it can be an expression).
 
 ### Devel
 ---

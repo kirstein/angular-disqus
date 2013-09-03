@@ -57,6 +57,18 @@ describe('Angular-disqus', function() {
         }));
       });
 
+      it('should write the script tag to head if there are other script tags present', inject(function($disqus) {
+        var el = $('<script></script>', {
+          src : 'http://www.google.com'
+        }).appendTo((document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]));
+
+        $disqusProvider.setShortname('shortname');
+        $disqus.commit('test');
+        var tags = $('script[type="text/javascript"][src="//shortname.disqus.com/embed.js"]');
+
+        expect(tags.length).toBe(1);
+      }));
+
       it('should write the script tag to head if not initialized (using provider)', inject(function($disqus) {
 
         $disqusProvider.setShortname('shortname');
@@ -138,14 +150,15 @@ describe('Angular-disqus', function() {
       $rootScope = _$rootScope_;
     }));
 
-
-    it('should compile as element', function() {
-      var element = compileHtml('<disqus></disqus>');
+    it('should compile as class', function() {
+      var element = compileHtml('<div class="disqus: \'test-id\'"></div>');
+      expect(element.scope().id).toEqual('test-id');
       expect(element.attr('id')).toEqual(ID);
     });
 
     it('should compile as attribute', function() {
-      var element = compileHtml('<div disqus></div>');
+      var element = compileHtml('<div disqus="\'test-id\'"></div>');
+      expect(element.scope().id).toEqual('test-id');
       expect(element.attr('id')).toEqual(ID);
     });
 
