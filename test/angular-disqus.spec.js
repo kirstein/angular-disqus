@@ -108,6 +108,23 @@ describe('Angular-disqus', function() {
         expect($window.disqus_url).toEqual($location.absUrl());
       }));
 
+      it ('should reset the thread with correct url', inject(function($disqus, $window, $location) {
+        var spy  = jasmine.createSpy('reset spy');
+        var data = {
+          page : {}
+        };
+
+        $disqusProvider.setShortname('shortname');
+        $window.DISQUS = {
+          reset : function(opts) {
+            opts.config.call(data);
+          }
+        };
+
+        $disqus.commit('$location test');
+        expect(data.page.url).toBe($location.absUrl());
+      }));
+
       it('should reset the thread if initialized', inject(function($disqus, $window) {
         var spy = jasmine.createSpy('disqus reset spy');
 
