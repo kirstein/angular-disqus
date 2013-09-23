@@ -96,9 +96,10 @@
 
     /**
      * Trigger the reset comment call
+     * @param  {String} $location location service
      * @param  {String} id Thread id
      */
-    function resetCommit(id) {
+    function resetCommit($location, id) {
       window.DISQUS.reset({
         reload: true,
         config : function() {
@@ -156,7 +157,7 @@
         } else if (!angular.isDefined(id)) {
           throw new Error('No disqus thread id defined');
         } else if (angular.isDefined(window.DISQUS)) {
-          resetCommit(id);
+          resetCommit($location, id);
         } else {
           buildCommit($location, id);
         }
