@@ -199,12 +199,10 @@
       ssoCredentials = {
         auth: auth,
         publicKey: publicKey
-      }
-      console.log("set creds", ssoCredentials)
-
-    }
+      };
+    };
+    
     this.getCredentials = function () {
-      console.log("get creds", ssoCredentials)
       return ssoCredentials;
     }
   });

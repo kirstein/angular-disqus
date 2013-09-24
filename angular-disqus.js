@@ -87,11 +87,19 @@
      * @param {String} id disqus identifier
      * @param {String} url disqus url
      * @param {String} shortname disqus shortname
+     * @param {Object} disqusSsoCredentials config for SSO
      */
-    function setGlobals(id, url, shortname) {
+    function setGlobals(id, url, shortname, disqusSsoCredentials) {
       window.disqus_identifier = id;
       window.disqus_url        = url;
       window.disqus_shortname  = shortname;
+      if(disqusSsoCredentials){
+        window.disqus_config  = function() {
+          console.log("auth", disqusSsoCredentials.auth)
+          this.page.remote_auth_s3 = disqusSsoCredentials.auth;
+          this.page.api_key = disqusSsoCredentials.pubKey;
+        };
+      }
     }
 
     /**
@@ -142,7 +150,7 @@
     };
 
     // Provider constructor
-    this.$get = [ '$location', function($location) {
+    this.$get = [ '$location', 'disqusSsoConfig', function($location, disqusSsoConfig) {
 
       /**
        * Resets the comment for thread.
@@ -159,7 +167,7 @@
         } else if (angular.isDefined(window.DISQUS)) {
           resetCommit($location, id);
         } else {
-          buildCommit($location, id);
+          buildCommit($location, id, disqusSsoConfig.getCredentials());
         }
       }
 
@@ -189,5 +197,20 @@
       }
     };
   }]);
+
+  disqusModule.service('disqusSsoConfig', function () {
+    var ssoCredentials = null;
+
+    this.setCredentials = function (auth, publicKey) {
+      ssoCredentials = {
+        auth: auth,
+        publicKey: publicKey
+      };
+    };
+    
+    this.getCredentials = function () {
+      return ssoCredentials;
+    }
+  });
 
 })(angular, this);
