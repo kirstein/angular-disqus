@@ -90,7 +90,7 @@
       if(disqusSsoCredentials){
         window.disqus_config  = function() {
           this.page.remote_auth_s3 = disqusSsoCredentials.auth;
-          this.page.api_key = disqusSsoCredentials.pubKey;
+          this.page.api_key = disqusSsoCredentials.publicKey;
         };
       }
     }
