@@ -123,8 +123,9 @@
      *
      * @param {Object} $location location
      * @param {String} id disqus thread id
+     * @param {Object} disqusSsoCredentials config for SSO
      */
-    function buildCommit($location, id) {
+    function buildCommit($location, id, disqusSsoCredentials) {
       var shortname = getShortname(),
           container = getScriptContainer();
 
@@ -135,7 +136,7 @@
       }
 
       // Writes disqus global
-      setGlobals(id, $location.absUrl(), shortname);
+      setGlobals(id, $location.absUrl(), shortname, disqusSsoCredentials);
 
       // Build the script tag and append it to container
       container.appendChild(buildScriptTag(shortname));
