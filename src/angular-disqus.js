@@ -81,11 +81,18 @@
      * @param {String} id disqus identifier
      * @param {String} url disqus url
      * @param {String} shortname disqus shortname
+     * @param {Object} disqusSsoCredentials config for SSO
      */
-    function setGlobals(id, url, shortname) {
+    function setGlobals(id, url, shortname, disqusSsoCredentials) {
       window.disqus_identifier = id;
       window.disqus_url        = url;
       window.disqus_shortname  = shortname;
+      if(disqusSsoCredentials){
+        window.disqus_config  = function() {
+          this.page.remote_auth_s3 = disqusSsoCredentials.auth;
+          this.page.api_key = disqusSsoCredentials.publicKey;
+        };
+      }
     }
 
     /**
@@ -109,8 +116,9 @@
      *
      * @param {Object} $location location
      * @param {String} id disqus thread id
+     * @param {Object} disqusSsoCredentials config for SSO
      */
-    function buildCommit($location, id) {
+    function buildCommit($location, id, disqusSsoCredentials) {
       var shortname = getShortname(),
           container = getScriptContainer();
 
@@ -121,7 +129,7 @@
       }
 
       // Writes disqus global
-      setGlobals(id, $location.absUrl(), shortname);
+      setGlobals(id, $location.absUrl(), shortname, disqusSsoCredentials);
 
       // Build the script tag and append it to container
       container.appendChild(buildScriptTag(shortname));
@@ -136,7 +144,7 @@
     };
 
     // Provider constructor
-    this.$get = [ '$location', function($location) {
+    this.$get = [ '$location', '$disqusSsoConfig', function($location, $disqusSsoConfig) {
 
       /**
        * Resets the comment for thread.
@@ -153,7 +161,7 @@
         } else if (angular.isDefined(window.DISQUS)) {
           resetCommit($location, id);
         } else {
-          buildCommit($location, id);
+          buildCommit($location, id, $disqusSsoConfig.getCredentials());
         }
       }
 
@@ -171,7 +179,7 @@
       restrict : 'AC',
       replace  : true,
       scope    : {
-        id : '=disqus',
+        id : '=disqus'
       },
       template : '<div id="disqus_thread"></div>',
       link: function link(scope, element, attr) {
@@ -183,5 +191,20 @@
       }
     };
   }]);
+
+  disqusModule.service('$disqusSsoConfig', function () {
+    var ssoCredentials = null;
+
+    this.setCredentials = function (auth, publicKey) {
+      ssoCredentials = {
+        auth: auth,
+        publicKey: publicKey
+      };
+    };
+    
+    this.getCredentials = function () {
+      return ssoCredentials;
+    }
+  });
 
 })(angular, this);
