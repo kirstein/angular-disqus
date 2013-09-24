@@ -37,6 +37,7 @@ Disqus identifiers must be passed to the directive as as expressions. If the pla
 1. ```$disqus#getShortname``` getter for the current shortname  
 2. ```$disqus#comment``` will reset comments (or generate comments if needed)
 3. ```$disqusProvider#setShortname``` setter for shortname
+4. ```$disqusSsoConfig#setCredentials(auth, pubKey)``` set Single Sign On auth token and public key. Must be called before directive is used the first time. 
 
 ### Devel
 ---
