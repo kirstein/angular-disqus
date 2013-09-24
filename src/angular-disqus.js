@@ -145,7 +145,7 @@
     };
 
     // Provider constructor
-    this.$get = [ '$location', 'disqusSsoConfig', function($location, disqusSsoConfig) {
+    this.$get = [ '$location', '$disqusSsoConfig', function($location, $disqusSsoConfig) {
 
       /**
        * Resets the comment for thread.
@@ -162,7 +162,7 @@
         } else if (angular.isDefined(window.DISQUS)) {
           resetCommit($location, id);
         } else {
-          buildCommit($location, id, disqusSsoConfig.getCredentials());
+          buildCommit($location, id, $disqusSsoConfig.getCredentials());
         }
       }
 
@@ -193,7 +193,7 @@
     };
   }]);
 
-  disqusModule.service('disqusSsoConfig', function () {
+  disqusModule.service('$disqusSsoConfig', function () {
     var ssoCredentials = null;
 
     this.setCredentials = function (auth, publicKey) {
