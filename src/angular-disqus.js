@@ -89,7 +89,6 @@
       window.disqus_shortname  = shortname;
       if(disqusSsoCredentials){
         window.disqus_config  = function() {
-          console.log("auth", disqusSsoCredentials.auth)
           this.page.remote_auth_s3 = disqusSsoCredentials.auth;
           this.page.api_key = disqusSsoCredentials.pubKey;
         };
