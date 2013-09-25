@@ -1,4 +1,4 @@
-# angular-disqus [![Build Status](https://travis-ci.org/kirstein/angular-disqus.png)](https://travis-ci.org/kirstein/angular-disqus.png)
+# angular-disqus [![Build Status](https://travis-ci.org/kirstein/angular-disqus.png)](https://travis-ci.org/kirstein/angular-disqus)
 
  > ```angular.js``` and ```disqus``` integration made easy
 
@@ -27,14 +27,14 @@ Add comments to threads by using the ```disqus``` directive
     <div class="disqus : id"></div>
 ```
 
-### Disqus identifiers   
+### Disqus identifiers
 ---
 Disqus identifiers must be passed to the directive as as expressions. If the plan is to pass a constant then one must make sure that the constant is wrapped in `'` apostrophes (_disqus="'id'""_)
 
 ### API
 ---
 
-1. ```$disqus#getShortname``` getter for the current shortname  
+1. ```$disqus#getShortname``` getter for the current shortname
 2. ```$disqus#comment``` will reset comments (or generate comments if needed)
 3. ```$disqusProvider#setShortname``` setter for shortname
 
