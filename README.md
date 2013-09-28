@@ -27,6 +27,12 @@ Add comments to threads by using the ```disqus``` directive
     <div class="disqus : id"></div>
 ```
 
+### Need to know
+---
+Disqus will only update on sites which use `hashbang` ( `#!` ).  
+Thats not something I have control over, so in order to use this plugin, please make sure that you have your `$locationProvider.hashPrefix('!')` set.
+
+
 ### Disqus identifiers
 ---
 Disqus identifiers must be passed to the directive as as expressions. If the plan is to pass a constant then one must make sure that the constant is wrapped in `'` apostrophes (_disqus="'id'""_)
