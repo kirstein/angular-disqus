@@ -1,0 +1,11 @@
+<section>
+  <h1>List of awesome contributors</h1>
+  <ul class="contributors">
+    <li data-ng-repeat="contributor in contributors">
+      <a href="{{ contributor.html_url }}"><img data-ng-src="{{ contributor.avatar_url }}" alt="avatar url"></a>
+    </li>
+  </ul>
+</section>
+<section class="contributor-comments">
+  <div disqus="'contributors'"></div>
+</section>
