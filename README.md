@@ -54,4 +54,7 @@ Disqus identifiers must be passed to the directive as as expressions. If the pla
   grunt build
 ```
 
+### License
+---
 
+MIT
