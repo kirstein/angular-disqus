@@ -23,6 +23,26 @@ describe('Angular-disqus', function() {
       expect($disqus.getShortname()).toEqual('test-name');
     }));
   });
+    
+  describe ('$disqusSsoConfig', function() {
+    var $disqusSsoConfig;
+
+    beforeEach(inject(function(_$disqusSsoConfig_) {
+      $disqusSsoConfig = _$disqusSsoConfig_;
+    }));
+    
+    it ('should contain the setCredentials function', function() {
+      expect($disqusSsoConfig.setCredentials).toEqual(jasmine.any(Function));
+    });
+
+    it ('should set the pubKey and auth', inject(function($disqus) {
+      $disqusSsoConfig.setCredentials('token', 'pub_key');
+      expect($disqusSsoConfig.getCredentials()).toEqual({
+          auth: 'token',
+          publicKey: 'pub_key'
+      });
+    }));
+  });
 
   describe('$disqus', function() {
 
@@ -106,6 +126,26 @@ describe('Angular-disqus', function() {
         expect($window.disqus_shortname).toEqual('shortname');
         expect($window.disqus_identifier).toEqual('test');
         expect($window.disqus_url).toEqual($location.absUrl());
+      }));
+
+      it('should assign window.disqus_config a function with sso credentials if they are present', inject(function($disqus, $window, $location, $disqusSsoConfig) {
+        var ssoCredentials;
+        $disqusSsoConfig.setCredentials('token', 'pub_key');
+        $disqusProvider.setShortname('shortname2');
+        $disqus.commit('test');
+
+        expect($window.disqus_shortname).toEqual('shortname2');
+        expect($window.disqus_identifier).toEqual('test');
+        expect($window.disqus_url).toEqual($location.absUrl());
+        expect($window.disqus_config).toBeDefined();
+        ssoCredentials = {
+          page: {}
+        };
+        $window.disqus_config.apply(ssoCredentials);
+        expect(ssoCredentials.page).toEqual({
+          remote_auth_s3: 'token',
+          api_key: 'pub_key'
+        });
       }));
 
       it ('should reset the thread with correct url', inject(function($disqus, $window, $location) {
