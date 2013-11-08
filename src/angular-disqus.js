@@ -7,9 +7,10 @@
    * $disqus provider.
    */
   disqusModule.provider('$disqus', function() {
-    var TYPE_THREAD = 'embed.js';
-    var TYPE_COUNT  = 'count.js';
+    var TYPE_EMBED = 'embed.js'; // general disqus embed script
+    var TYPE_COUNT = 'count.js'; // used for count
 
+    // Placeholder for the disqus shortname
     var shortname;
 
     /**
@@ -28,15 +29,17 @@
 
     /**
      * @param {String} shortname disqus shortname
+     * @param {String} file file name to add.
      * @return {String} disqus embed src with embedded shortname
      */
-    function getScriptSrc(shortname, type) {
-      return '//' + shortname + '.disqus.com/' + type;
+    function getScriptSrc(shortname, file) {
+      return '//' + shortname + '.disqus.com/' + file;
     }
 
     /**
      * Builds the script tag
-     * @param {String} shortname disqus shortname
+     *
+     * @param {String} src script source
      * @return {Element} script element
      */
     function buildScriptTag(src) {
@@ -55,12 +58,12 @@
      * if its already there then return true. Otherwise return false
      *
      * @param {Element} element element to search within
-     * @param {String} shortname shortname to search
+     * @param {String} scriptSrc script src
      * @return {Boolean} true if its there, false if its not
      */
     function hasScriptTagInPlace(container, scriptSrc) {
       var scripts   = container.getElementsByTagName('script'),
-          script, i;
+      script, i;
 
       for (i = 0; i < scripts.length; i += 1) {
         script = scripts[i];
@@ -90,6 +93,16 @@
     }
 
     /**
+     * Refreshes the count from DISQUSWIDGETS.
+     */
+    function getCount() {
+      var widgets = window.DISQUSWIDGETS;
+      if (widgets && angular.isFunction(widgets.getCount)) {
+        widgets.getCount();
+      }
+    }
+
+    /**
      * Trigger the reset comment call
      * @param  {String} $location location service
      * @param  {String} id Thread id
@@ -105,15 +118,20 @@
     }
 
     /**
-     * Adds disqus script tag to header.
-     * Initializes default values for url and disqus thread id.
+     * Adds disqus script tag to header by its type.
+     * If the script tag already exists in header then wont continue.
      *
-     * @param {Object} $location location
-     * @param {String} id disqus thread id
+     * Adds script tags by their type.
+     * Currently we are using two types:
+     *  1. count.js
+     *  2. embed.js
+     *
+     * @param {String} shortname disqus shortname
+     * @param {String} type disqus scirpt tag type
      */
     function addScriptTag(shortname, type) {
       var container = getScriptContainer(),
-          scriptSrc = getScriptSrc(shortname, type);
+      scriptSrc = getScriptSrc(shortname, type);
 
       // If it already has a script tag in place then lets not do anything
       // This might happen if the user changes the page faster than then disqus can load
@@ -154,17 +172,30 @@
           resetCommit($location, id);
         } else {
           setGlobals(id, $location.absUrl(), shortname);
-          addScriptTag(shortname, TYPE_THREAD);
+          addScriptTag(shortname, TYPE_EMBED);
         }
+      }
+
+      /**
+       * Loads the comment script tag and initiates the comments.
+       * Sets the globals according to the current page.
+       *
+       * If the embed disqus is not added to page then adds that.
+       *
+       * @param {Stirng} id thread id
+       */
+      function loadCount(id) {
+        setGlobals(id, $location.absUrl(), shortname);
+        addScriptTag(getShortname(), TYPE_EMBED);
+        addScriptTag(getShortname(), TYPE_COUNT);
+        getCount();
       }
 
       // Expose public api
       return {
         commit       : commit,
         getShortname : getShortname,
-        loadCount    : function() {
-          addScriptTag(getShortname(), TYPE_COUNT);
-        }
+        loadCount    : loadCount
       };
     }];
   });
@@ -199,8 +230,8 @@
   disqusModule.directive('disqusIdentifier', [ '$disqus', function($disqus) {
     return {
       restrict : 'A',
-      link     : function() {
-        $disqus.loadCount();
+      link     : function(scope, elem, attr) {
+        $disqus.loadCount(attr.disqusIdentifier);
       }
     };
   }]);
