@@ -1,5 +1,5 @@
 (function (angular, window) {
-  "use strict";
+  'use strict';
 
   var disqusModule = angular.module('ngDisqus', [ ]);
 
@@ -163,7 +163,7 @@
         getShortname : getShortname
       };
     }];
- });
+  });
 
   disqusModule.directive('disqus', [ '$disqus', function($disqus) {
 
@@ -174,7 +174,7 @@
         id : '=disqus',
       },
       template : '<div id="disqus_thread"></div>',
-      link: function link(scope, element, attr) {
+      link: function link(scope) {
         scope.$watch('id', function(id) {
           if (angular.isDefined(id)) {
             $disqus.commit(id);
