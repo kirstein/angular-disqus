@@ -7,6 +7,8 @@
    * $disqus provider.
    */
   disqusModule.provider('$disqus', function() {
+    var TYPE_THREAD = 'embed.js';
+    var TYPE_COUNT  = 'count.js';
 
     var shortname;
 
@@ -28,8 +30,8 @@
      * @param {String} shortname disqus shortname
      * @return {String} disqus embed src with embedded shortname
      */
-    function getScriptSrc(shortname) {
-      return '//' + shortname + '.disqus.com/embed.js';
+    function getScriptSrc(shortname, type) {
+      return '//' + shortname + '.disqus.com/' + type;
     }
 
     /**
@@ -37,13 +39,13 @@
      * @param {String} shortname disqus shortname
      * @return {Element} script element
      */
-    function buildScriptTag(shortname) {
+    function buildScriptTag(src) {
       var script = document.createElement('script');
 
       // Configure the script tag
       script.type  = 'text/javascript';
       script.async = true;
-      script.src   = getScriptSrc(shortname);
+      script.src   = src;
 
       return script;
     }
@@ -56,9 +58,8 @@
      * @param {String} shortname shortname to search
      * @return {Boolean} true if its there, false if its not
      */
-    function hasScriptTagInPlace(container, shortname) {
+    function hasScriptTagInPlace(container, scriptSrc) {
       var scripts   = container.getElementsByTagName('script'),
-          scriptSrc = getScriptSrc(shortname),
           script, i;
 
       for (i = 0; i < scripts.length; i += 1) {
@@ -110,21 +111,18 @@
      * @param {Object} $location location
      * @param {String} id disqus thread id
      */
-    function buildCommit($location, id) {
-      var shortname = getShortname(),
-          container = getScriptContainer();
+    function addScriptTag(shortname, type) {
+      var container = getScriptContainer(),
+          scriptSrc = getScriptSrc(shortname, type);
 
       // If it already has a script tag in place then lets not do anything
       // This might happen if the user changes the page faster than then disqus can load
-      if (hasScriptTagInPlace(container, shortname)) {
+      if (hasScriptTagInPlace(container, scriptSrc)) {
         return;
       }
 
-      // Writes disqus global
-      setGlobals(id, $location.absUrl(), shortname);
-
       // Build the script tag and append it to container
-      container.appendChild(buildScriptTag(shortname));
+      container.appendChild(buildScriptTag(scriptSrc));
     }
 
 
@@ -146,25 +144,35 @@
        * @param  {String} id required thread id
        */
       function commit(id) {
-        if (!angular.isDefined(getShortname())) {
+        var shortname = getShortname();
+
+        if (!angular.isDefined(shortname)) {
           throw new Error('No disqus shortname defined');
         } else if (!angular.isDefined(id)) {
           throw new Error('No disqus thread id defined');
         } else if (angular.isDefined(window.DISQUS)) {
           resetCommit($location, id);
         } else {
-          buildCommit($location, id);
+          setGlobals(id, $location.absUrl(), shortname);
+          addScriptTag(shortname, TYPE_THREAD);
         }
       }
 
       // Expose public api
       return {
         commit       : commit,
-        getShortname : getShortname
+        getShortname : getShortname,
+        loadCount    : function() {
+          addScriptTag(getShortname(), TYPE_COUNT);
+        }
       };
     }];
   });
 
+  /**
+   * Disqus thread comment directive.
+   * Used to display the comments block for a thread.
+   */
   disqusModule.directive('disqus', [ '$disqus', function($disqus) {
 
     return {
@@ -180,6 +188,19 @@
             $disqus.commit(id);
           }
         });
+      }
+    };
+  }]);
+
+  /**
+   * Disqus comment count directive.
+   * Just wraps `disqus-identifier` to load the disqus comments count script tag on page
+   */
+  disqusModule.directive('disqusIdentifier', [ '$disqus', function($disqus) {
+    return {
+      restrict : 'A',
+      link     : function() {
+        $disqus.loadCount();
       }
     };
   }]);
