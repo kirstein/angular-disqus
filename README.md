@@ -50,7 +50,7 @@ Example on how to show the comment count:
 
 This will replace the content of the anchor tag with given comment count.
 
-There is some talk of this in the [disqus spec](1)
+There is some talk of this in the [disqus spec][1]
 
 ### API
 ---
