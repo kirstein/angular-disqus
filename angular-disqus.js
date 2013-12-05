@@ -33,13 +33,22 @@
       return shortname || window.disqus_shortname;
     }
 
-    /**
+      /**
+       * @return {String} disqus shortname
+       */
+      function getLanguage() {
+          return language || window.disqus_language;
+      }
+
+
+      /**
      * @param {String} shortname disqus shortname
      * @param {String} file file name to add.
      * @return {String} disqus embed src with embedded shortname
      */
     function getScriptSrc(shortname, file) {
-      return '//' + shortname + '.disqus.com/' + file;
+      return '//' + shortname + '.disqus.com/' + file
+
     }
 
     /**
@@ -58,6 +67,24 @@
 
       return script;
     }
+
+
+      /**
+       * Builds the script tag using text property
+       *
+       * @param {String} text script source
+       * @return {Element} script element
+       */
+      function buildScriptTagText(text) {
+          var script = document.createElement('script');
+
+          // Configure the script tag
+          script.type  = 'text/javascript';
+          script.async = true;
+          script.text   = text;
+
+          return script;
+      }
 
     /**
      * Searches the given element for defined script tag
@@ -92,11 +119,18 @@
      * @param {String} url disqus url
      * @param {String} shortname disqus shortname
      */
-    function setGlobals(id, url, shortname) {
+    function setGlobals  (id, url, shortname,language) {
       window.disqus_identifier = id;
       window.disqus_url        = url;
       window.disqus_shortname  = shortname;
+
+      //attach language to window object if it's defined
+    if(angular.isDefined(language)){
+      window.disqus_language  = language;
+      }
+
     }
+
 
     /**
      * Refreshes the count from DISQUSWIDGETS.
@@ -113,12 +147,18 @@
      * @param  {String} $location location service
      * @param  {String} id Thread id
      */
-    function resetCommit($location, id) {
+    function resetCommit($location, id,language) {
       window.DISQUS.reset({
         reload: true,
         config : function() {
+
+            console.log("reset!") ;
+            console.log(language);
           this.page.identifier = id;
           this.page.url        = $location.absUrl();
+           if(angular.isDefined(language)){
+          this.language =   language;
+            }
         }
       });
     }
@@ -147,6 +187,17 @@
 
       // Build the script tag and append it to container
       container.appendChild(buildScriptTag(scriptSrc));
+
+
+
+
+        //build the language script
+       var script = buildScriptTagText('var disqus_config = function () {    this.language = window.language; };');
+
+        //append it after disqus load just to configure the language initially
+        container.appendChild(script);
+
+
     }
 
 
@@ -157,8 +208,15 @@
       shortname = sname;
     };
 
+      /**
+       * @param {String} sname shortname
+       */
+    this.setLanguage = function(language) {
+      language = language;
+    };
+
     // Provider constructor
-    this.$get = [ '$location', function($location) {
+    this.$get = [ '$location','$routeParams', function($location,$routeParams) {
 
       /**
        * Resets the comment for thread.
@@ -168,6 +226,7 @@
        * @param  {String} id required thread id
        */
       function commit(id) {
+
         var shortname = getShortname();
 
         if (!angular.isDefined(shortname)) {
@@ -175,9 +234,14 @@
         } else if (!angular.isDefined(id)) {
           throw new Error('No disqus thread id defined');
         } else if (angular.isDefined(window.DISQUS)) {
-          resetCommit($location, id);
+          resetCommit($location, id,language);
         } else {
           setGlobals(id, $location.absUrl(), shortname);
+            if(angular.isDefined(language)){
+
+                setGlobals(id, $location.absUrl(), shortname,language);
+
+            }
           addScriptTag(shortname, TYPE_EMBED);
         }
       }
@@ -191,7 +255,7 @@
        * @param {Stirng} id thread id
        */
       function loadCount(id) {
-        setGlobals(id, $location.absUrl(), shortname);
+        setGlobals(id, $location.absUrl(), shortname,$routeParams.lang);
         addScriptTag(getShortname(), TYPE_EMBED);
         addScriptTag(getShortname(), TYPE_COUNT);
         getCount();
@@ -201,6 +265,7 @@
       return {
         commit       : commit,
         getShortname : getShortname,
+        getLanguage : getLanguage,
         loadCount    : loadCount
       };
     }];
@@ -217,14 +282,26 @@
       replace  : true,
       scope    : {
         id : '=disqus',
+        lang: '=language'
       },
       template : '<div id="disqus_thread"></div>',
       link: function link(scope) {
-        scope.$watch('id', function(id) {
-          if (angular.isDefined(id)) {
-            $disqus.commit(id);
-          }
-        });
+          //support for watch collection isn't determined yet ...
+       scope.$watch('id', function(id){
+           if (angular.isDefined(id)) {
+               $disqus.commit(id);
+
+           }
+
+       });
+          scope.$watch('lang', function(lang){
+               //optional language support
+               if(angular.isDefined(lang)){
+                   $disqus.commit(scope.id,lang);
+               }
+
+
+       });
       }
     };
   }]);
