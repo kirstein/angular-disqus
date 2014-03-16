@@ -127,7 +127,7 @@
      *  2. embed.js
      *
      * @param {String} shortname disqus shortname
-     * @param {String} type disqus scirpt tag type
+     * @param {String} type disqus script tag type
      */
     function addScriptTag(shortname, type) {
       var container = getScriptContainer(),
@@ -182,7 +182,7 @@
        *
        * If the embed disqus is not added to page then adds that.
        *
-       * @param {Stirng} id thread id
+       * @param {String} id thread id
        */
       function loadCount(id) {
         setGlobals(id, $location.absUrl(), shortname);
