@@ -4,6 +4,10 @@
 
 A set of directive(s) and services to simplify the life of developers.
 
+### NOTICE!
+
+This library is no longer activly maintained by me. However, If you feel like you should be the one who will continue maintaing it then please contact me.
+
 ### Getting started
 ---
 Add ```ngDisqus``` to required modules list
