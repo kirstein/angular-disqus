@@ -186,7 +186,6 @@
        */
       function loadCount(id) {
         setGlobals(id, $location.absUrl(), shortname);
-        addScriptTag(getShortname(), TYPE_EMBED);
         addScriptTag(getShortname(), TYPE_COUNT);
         getCount();
       }
