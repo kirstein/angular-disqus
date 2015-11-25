@@ -10,46 +10,59 @@ This library is no longer activly maintained by me. However, If you feel like yo
 
 ### Getting started
 ---
-Add ```ngDisqus``` to required modules list
+**(1)** Add ```ngDisqus``` to required modules list:
+```
+   var myApp = angular.module('myApp', ['ngDisqus']);
+```
+**(2)** Register your ```shortname```:
+
+*This is the unique identifier assigned to your Disqus app, can be found on disqus.com > Admin. https://shortname.disqus.com*
 
 ```
-    angular.module('myApp', [ …, 'ngDisqus' ]);
+   myApp.config(function($disqusProvider){
+      $disqusProvider.setShortname(shortname);
+   });
 ```
-
-Register your ```shortname```:
-
-  1. by just adding it to ```window.disqus_shortname```
-  2. by configure with ```$disqusProvider``` and registering it via ```$disqusProvider.setShortname```
-
-Add comments to threads by using the ```disqus``` directive
+**(3)** Add comments to threads by using the ```disqus``` directive:
 
 ```
     <!-- directive can be used as an attribute -->
     <div disqus="id"></div>
 
     <!-- directive can be used as a class attribute -->
-    <div class="disqus : id"></div>
+    <div class="disqus: id"></div>
 ```
 
-### Need to know
+### Additional Changes
 ---
-Disqus will only update on sites which use `hashbang` ( `#!` ).  
-Thats not something I have control over, so in order to use this plugin, please make sure that you have your `$locationProvider.hashPrefix('!')` set.
+Disqus will only work on sites which use `hashbang` ( `#!` ).  A valid url looks like this, ```http://localhost:8000/#!/home/comments/10```
 
+Update config block liks this:
+
+```
+   myApp.config(function($disqusProvider, $locationProvider){
+      $locationProvider.hashPrefix('!');
+   })
+```
+This changes your link from ```http://localhost:8000/#/home/comments/10``` to the valid form above.
 
 ### Disqus identifiers
 ---
-Disqus identifiers must be passed to the directive as as expressions. If the plan is to pass a constant then one must make sure that the constant is wrapped in `'` apostrophes (_disqus="'id'""_)
+Disqus identifiers must be passed to the directive as as expressions. If the plan is to pass a variable then one must make sure that the variable is wrapped in `'` apostrophes (_disqus="'id'""_)
 
 ### Comment count
 ---
 Angular-disqus will display comment using the `data-disqus-identifier` attribute.
 
-Example on how to show the comment count:
+Normal Link:
+```
+  <a href="#!/home/comments/10" data-disqus-identifier="randomString"></a>
+```
+
+Ui router:
 
 ```
-  <a href="#!/test/1">test page 1</a> |
-  <a href="#!/test/1" data-disqus-identifier="1"></a>
+  <a ui-sref="home.comments.view({id: video.id})" data-disqus-identifier="randomString"></a>
 ```
 
 This will replace the content of the anchor tag with given comment count.
@@ -62,14 +75,14 @@ There is some talk of this in the [disqus spec][1]
 1. ```$disqus#getShortname``` getter for the current shortname
 2. ```$disqus#comment``` will reset comments (or generate comments if needed)
 3. ```$disqusProvider#setShortname``` setter for shortname
-4. ```$loadCount``` initiates the thread comment count loading (generally should not be used)
+4. ```$loadCount``` initiates the thread com`ment count loading (generally should not be used)
 
 ### Devel
 ---
 
 ```
   npm install
-  bower install
+  bower install angular-disqus --save
   grunt test
   grunt build
 ```
