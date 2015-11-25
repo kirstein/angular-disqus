@@ -75,7 +75,7 @@ There is some talk of this in the [disqus spec][1]
 1. ```$disqus#getShortname``` getter for the current shortname
 2. ```$disqus#comment``` will reset comments (or generate comments if needed)
 3. ```$disqusProvider#setShortname``` setter for shortname
-4. ```$loadCount``` initiates the thread com`ment count loading (generally should not be used)
+4. ```$loadCount``` initiates the thread comment count loading (generally should not be used)
 
 ### Devel
 ---
