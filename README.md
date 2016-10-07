@@ -24,7 +24,7 @@ This library is no longer activly maintained by me. However, If you feel like yo
    });
 ```
 
-**(4)** Add comments to threads by using the ```disqus``` directive:
+**(3)** Add comments to threads by using the ```disqus``` directive:
 
 ```
     <!-- directive can be used as an attribute -->
