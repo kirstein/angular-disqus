@@ -3,6 +3,13 @@
   "version": "1.1.0",
   "description": "Disqus directive for angular.js",
   "homepage": "http://github.com/kirstein/angular-disqus",
+  "scripts": {
+    "test": "grunt test",
+    "build": "grunt build",
+    "preversion": "npm test",
+    "version": "npm run build && git add -A dist",
+    "postversion": "git push && git push --tags && npm publish"
+  },
   "directories": {
     "test": "test"
   },
@@ -11,13 +18,25 @@
     "url": "https://github.com/kirstein/angular-disqus.git"
   },
   "author": "Mikk Kirstein",
+  "contributors": [
+    {
+      "name": "Bruno Oliveira",
+      "email": "321.bruno@gmail.com"
+    }
+  ],
   "license": "MIT",
   "devDependencies": {
-    "karma": "~0.8.5",
     "grunt": "~0.4.1",
-    "grunt-karma": "~0.4.4",
-    "grunt-contrib-uglify": "~0.2.0",
+    "grunt-banner": "~0.1.4",
     "grunt-contrib-copy": "~0.4.1",
-    "grunt-banner": "~0.1.4"
+    "grunt-contrib-uglify": "~0.2.0",
+    "grunt-karma": "^2.0.0",
+    "jasmine-core": "^2.5.2",
+    "karma": "^1.3.0",
+    "karma-growl-reporter": "^1.0.0",
+    "karma-jasmine": "^1.0.2",
+    "karma-nyan-reporter": "^0.2.4",
+    "karma-phantomjs-launcher": "^1.0.2",
+    "phantomjs": "^2.1.7"
   }
 }
