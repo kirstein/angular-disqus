@@ -6,8 +6,8 @@
   "scripts": {
     "test": "grunt test",
     "build": "grunt build",
-    "preversion": "npm test",
-    "version": "npm run build && git add -A",
+    "preversion": "npm run build",
+    "version": "git add -A",
     "postversion": "git push && git push --tags && npm publish"
   },
   "directories": {
