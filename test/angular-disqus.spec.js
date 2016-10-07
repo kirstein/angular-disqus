@@ -204,6 +204,19 @@ describe('Angular-disqus', function() {
         expect($window.DISQUSWIDGETS.getCount).toHaveBeenCalled();
       }));
     });
+
+    describe('#setSso', function(){
+      it('should write sso values to window', inject(function(disqusService, $window) {
+        var sso = {
+          remote_auth_s3: '123',
+          api_key: '456'
+        };
+
+        disqusService.setSso(sso);
+
+        expect($window.disqus_sso).toEqual(sso);
+      }));
+    })
   });
 
   describe('directive', function() {
