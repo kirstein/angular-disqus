@@ -1,11 +1,9 @@
  language: node_js
  node_js:
-   - "0.10.22"
+   - "6.3.0"
 
  before_script:
    - npm install -g grunt-cli
-   - npm install -g bower
-   - bower install
 
  script:
    - grunt test --browsers Firefox --reporters=dots

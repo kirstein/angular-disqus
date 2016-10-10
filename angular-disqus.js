@@ -1,5 +1,5 @@
 /* 
- * angular-disqus 1.1.0
+ * angular-disqus 1.1.2
  * http://github.com/kirstein/angular-disqus
  * 
  * Licensed under the MIT license
@@ -31,6 +31,13 @@
      */
     function getShortname() {
       return shortname || window.disqus_shortname;
+    }
+
+    /**
+     * @return {String} disqus shortname
+     */
+    function getSso() {
+      return window.disqus_sso || {};
     }
 
     /**
@@ -69,7 +76,7 @@
      */
     function hasScriptTagInPlace(container, scriptSrc) {
       var scripts   = container.getElementsByTagName('script'),
-      script, i;
+          script, i;
 
       for (i = 0; i < scripts.length; i += 1) {
         script = scripts[i];
@@ -88,14 +95,24 @@
      * Writes disqus globals to window object.
      * Needed for the first load. Otherwise the disqus wouldn't know what thread comments to load.
      *
+     * @param {String} $location location service
      * @param {String} id disqus identifier
-     * @param {String} url disqus url
-     * @param {String} shortname disqus shortname
+     * @param {String} title disqus title
      */
-    function setGlobals(id, url, shortname) {
+    function setGlobals($location, id, title) {
       window.disqus_identifier = id;
-      window.disqus_url        = url;
+      window.disqus_url        = $location.absUrl();
       window.disqus_shortname  = shortname;
+      window.disqus_title  = title;
+
+      var sso = getSso();
+      if(Object.keys(sso).length > 0){
+        window.disqus_config = function(){
+          this.page.remote_auth_s3 = sso.remote_auth_s3;
+          this.page.api_key = sso.api_key;
+        };
+      }
+
     }
 
     /**
@@ -112,13 +129,19 @@
      * Trigger the reset comment call
      * @param  {String} $location location service
      * @param  {String} id Thread id
+     * @param  {String} title Title page
      */
-    function resetCommit($location, id) {
+    function resetCommit($location, id, title) {
+      var sso = getSso();
+
       window.DISQUS.reset({
         reload: true,
         config : function() {
           this.page.identifier = id;
           this.page.url        = $location.absUrl();
+          this.page.title      = title;
+          this.page.remote_auth_s3 = sso.remote_auth_s3;
+          this.page.api_key = sso.api_key;
         }
       });
     }
@@ -135,9 +158,10 @@
      * @param {String} shortname disqus shortname
      * @param {String} type disqus script tag type
      */
-    function addScriptTag(shortname, type) {
+    function addScriptTag(type) {
+      var shortname = getShortname();
       var container = getScriptContainer(),
-      scriptSrc = getScriptSrc(shortname, type);
+          scriptSrc = getScriptSrc(shortname, type);
 
       // If it already has a script tag in place then lets not do anything
       // This might happen if the user changes the page faster than then disqus can load
@@ -148,7 +172,6 @@
       // Build the script tag and append it to container
       container.appendChild(buildScriptTag(scriptSrc));
     }
-
 
     /**
      * @param {String} sname shortname
@@ -166,19 +189,32 @@
        * If disqus was initialized earlier then it will just use disqus api to reset it
        *
        * @param  {String} id required thread id
+       * @param  {String} title title page
        */
-      function commit(id) {
-        var shortname = getShortname();
-
+      function commit(id, title) {
         if (!angular.isDefined(shortname)) {
           throw new Error('No disqus shortname defined');
         } else if (!angular.isDefined(id)) {
           throw new Error('No disqus thread id defined');
         } else if (angular.isDefined(window.DISQUS)) {
-          resetCommit($location, id);
+          resetCommit($location, id, title);
         } else {
-          setGlobals(id, $location.absUrl(), shortname);
-          addScriptTag(shortname, TYPE_EMBED);
+          setGlobals($location, id, title);
+          addScriptTag(TYPE_EMBED);
+        }
+      }
+
+      /**
+       * Single Sign On
+       *
+       * See more: https://help.disqus.com/customer/portal/articles/236206-single-sign-on
+       *
+       * @param dataSso Object with os params remote_auth_s3 and api_key
+       */
+      function setSso(dataSso) {
+        window.disqus_sso = dataSso;
+        if (angular.isDefined(window.DISQUS)) {
+          resetCommit($location, window.disqus_identifier, window.disqus_title);
         }
       }
 
@@ -191,9 +227,9 @@
        * @param {String} id thread id
        */
       function loadCount(id) {
-        setGlobals(id, $location.absUrl(), shortname);
-        addScriptTag(getShortname(), TYPE_EMBED);
-        addScriptTag(getShortname(), TYPE_COUNT);
+        setGlobals($location, id);
+        addScriptTag(TYPE_EMBED);
+        addScriptTag(TYPE_COUNT);
         getCount();
       }
 
@@ -201,10 +237,22 @@
       return {
         commit       : commit,
         getShortname : getShortname,
+        setSso       : setSso,
         loadCount    : loadCount
       };
     }];
   });
+
+  /**
+   * $disqus service.
+   */
+  disqusModule.service('disqusService', ['$disqus', function($disqus){
+    return {
+      setSso: function(dataSso){
+        $disqus.setSso(dataSso);
+      }
+    };
+  }]);
 
   /**
    * Disqus thread comment directive.
@@ -217,12 +265,13 @@
       replace  : true,
       scope    : {
         id : '=disqus',
+        title: '=title'
       },
       template : '<div id="disqus_thread"></div>',
       link: function link(scope) {
         scope.$watch('id', function(id) {
           if (angular.isDefined(id)) {
-            $disqus.commit(id);
+            $disqus.commit(id, scope.title);
           }
         });
       }

@@ -32,14 +32,14 @@ describe('Angular-disqus', function() {
         it('should throw when no disqus shortname defined', inject(function($disqus, $window) {
           expect(function () {
             $disqus.commit();
-          }).toThrow('No disqus shortname defined');
+          }).toThrowError('No disqus shortname defined');
         }));
 
         it('should throw when no disqus shortname defined (on window)', inject(function($disqus, $window) {
           $window.disqus_shortname = undefined;
           expect(function () {
             $disqus.commit();
-          }).toThrow('No disqus shortname defined');
+          }).toThrowError('No disqus shortname defined');
         }));
 
         it('should not throw when disqus_shortname is defined on window', inject(function($disqus, $window) {
@@ -53,7 +53,7 @@ describe('Angular-disqus', function() {
           $disqusProvider.setShortname('defined');
           expect(function () {
             $disqus.commit(undefined);
-          }).toThrow('No disqus thread id defined');
+          }).toThrowError('No disqus thread id defined');
         }));
       });
 
@@ -126,21 +126,22 @@ describe('Angular-disqus', function() {
       }));
 
       it('should reset the thread if initialized', inject(function($disqus, $window) {
-        var spy = jasmine.createSpy('disqus reset spy');
-
         $disqusProvider.setShortname('shortname');
+
         // Overwrite the reset method
         $window.DISQUS = {
-          reset : spy
+          reset : function(){}
         };
 
+        spyOn($window.DISQUS, 'reset');
+
         $disqus.commit('wat');
-        expect(spy).toHaveBeenCalled();
-        expect(spy.callCount).toBe(1);
+        expect($window.DISQUS.reset).toHaveBeenCalled();
+        expect($window.DISQUS.reset.calls.count()).toBe(1);
 
         // Validate arguments
-        expect(spy.mostRecentCall.args[0].reload).toBe(true);
-        expect(spy.mostRecentCall.args[0].config).toEqual(jasmine.any(Function));
+        expect($window.DISQUS.reset.calls.mostRecent().args[0].reload).toBe(true);
+        expect($window.DISQUS.reset.calls.mostRecent().args[0].config).toEqual(jasmine.any(Function));
       }));
     });
 
@@ -203,55 +204,69 @@ describe('Angular-disqus', function() {
         expect($window.DISQUSWIDGETS.getCount).toHaveBeenCalled();
       }));
     });
+
+    describe('#setSso', function(){
+      it('should write sso values to window', inject(function(disqusService, $window) {
+        var sso = {
+          remote_auth_s3: '123',
+          api_key: '456'
+        };
+
+        disqusService.setSso(sso);
+
+        expect($window.disqus_sso).toEqual(sso);
+      }));
+    })
   });
 
   describe('directive', function() {
-
-    function compileHtml(html) {
-      var elem = $compile(html)($rootScope);
-      $rootScope.$digest();
-
-      return elem;
-    }
-
     var ID = 'disqus_thread',
-    $compile, $rootScope;
+    $compile, $rootScope, $scope;
 
     beforeEach(inject(function(_$compile_, _$rootScope_) {
       $compile   = _$compile_;
       $rootScope = _$rootScope_;
+      $scope = $rootScope.$new();
     }));
 
     describe('thread directive', function() {
 
       it('should compile as class', function() {
-        var element = compileHtml('<div class="disqus: \'test-id\'"></div>');
-        expect(element.scope().id).toEqual('test-id');
+        $disqusProvider.setShortname('shortname');
+        var element = $compile('<div class="disqus: \'test-id\'"></div>')($scope);
+
+        $scope.$digest();
+
+        expect(element.isolateScope().id).toEqual('test-id');
         expect(element.attr('id')).toEqual(ID);
       });
 
       it('should compile as attribute', function() {
-        var element = compileHtml('<div disqus="\'test-id\'"></div>');
-        expect(element.scope().id).toEqual('test-id');
+        $disqusProvider.setShortname('shortname');
+        var element = $compile('<div disqus="\'test-id\'"></div>')($scope);
+        $scope.$digest();
+
+        expect(element.isolateScope().id).toEqual('test-id');
         expect(element.attr('id')).toEqual(ID);
       });
 
-      it('should trigger commit if id is defined', inject(function($disqus) {
-        $disqus.commit = jasmine.createSpy('commit call spy');
-        compileHtml('<div disqus="\'test-id\'"></div>');
+      it('should trigger commit if id and title is defined', inject(function($disqus) {
+        spyOn($disqus, 'commit');
+        $compile('<div disqus="\'test-id\'" title="\'test\'"></div>')($scope);
+        $scope.$digest();
 
-        expect($disqus.commit).toHaveBeenCalledWith('test-id');
+        expect($disqus.commit).toHaveBeenCalledWith('test-id', 'test');
       }));
 
       it('should trigger commit if id changes', inject(function($window, $disqus, $rootScope) {
-        $disqus.commit = jasmine.createSpy('commit call spy');
+        spyOn($disqus, 'commit');
         $rootScope.id = 'test-id';
-        compileHtml('<div disqus="id"></div>');
+        $compile('<div disqus="id"></div>')($scope);
 
         $rootScope.id = 'hello-kitty';
         $rootScope.$apply();
 
-        expect($disqus.commit).toHaveBeenCalledWith('hello-kitty');
+        expect($disqus.commit).toHaveBeenCalledWith('hello-kitty', undefined);
       }));
     });
 
@@ -259,13 +274,17 @@ describe('Angular-disqus', function() {
 
       it('should trigger disqusProvider loadCount', inject(function($disqus) {
         spyOn($disqus, 'loadCount');
-        var element = compileHtml('<div data-disqus-identifier="id"></div>');
+        $compile('<div data-disqus-identifier="id"></div>')($scope);
+        $scope.$digest();
+
         expect($disqus.loadCount).toHaveBeenCalled();
       }));
 
       it('should trigger disqusProvider loadCount with given id', inject(function($disqus) {
         spyOn($disqus, 'loadCount');
-        var element = compileHtml('<div data-disqus-identifier="id"></div>');
+        $compile('<div data-disqus-identifier="id"></div>')($scope);
+        $scope.$digest();
+
         expect($disqus.loadCount).toHaveBeenCalledWith('id');
       }));
 
