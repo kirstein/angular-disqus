@@ -1,6 +1,6 @@
 {
   "name": "angular-disqus",
-  "version": "1.1.2",
+  "version": "1.1.0",
   "description": "Disqus directive for angular.js",
   "homepage": "http://github.com/kirstein/angular-disqus",
   "scripts": {
